@@ -20,12 +20,16 @@ class Geofence extends HiveObject {
   @HiveField(4)
   double longitude;
 
+  @HiveField(5)
+  bool isEnabled;
+
   Geofence({
     required this.title,
     required this.description,
     required this.radius,
     required this.latitude,
     required this.longitude,
+    this.isEnabled = true,
   });
 
   LatLng get location => LatLng(latitude, longitude);

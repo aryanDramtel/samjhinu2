@@ -74,21 +74,69 @@ class _MyHomePageState extends State<MyHomePage> {
                 final reminder = box.getAt(index)!;
                 return Card(
                   margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: ListTile(
-                    leading: const Icon(Icons.alarm),
-                    title: Text(reminder.title),
-                    subtitle: Text(
-                      '${reminder.description}\nRadius: ${reminder.radius}m\nLocation: ${reminder.latitude.toStringAsFixed(4)}, ${reminder.longitude.toStringAsFixed(4)}',
-                    ),
-                    isThreeLine: true,
-                    trailing: Switch(
-                      value: true, // Placeholder for future toggle logic
-                      onChanged: (val) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(val ? 'Reminder ON' : 'Reminder OFF')),
-                        );
-                      },
-                    ),
+                  child: Column(
+                    children: [
+                      ListTile(
+                        leading: const Icon(Icons.alarm),
+                        title: Text(reminder.title),
+                        subtitle: Text(
+                          '${reminder.description}\nRadius: ${reminder.radius}m\nLocation: ${reminder.latitude.toStringAsFixed(4)}, ${reminder.longitude.toStringAsFixed(4)}',
+                        ),
+                        isThreeLine: true,
+                        trailing: Switch(
+                          value: reminder.isEnabled,
+                          onChanged: (val) async {
+                            final updated = Geofence(
+                              title: reminder.title,
+                              description: reminder.description,
+                              radius: reminder.radius,
+                              latitude: reminder.latitude,
+                              longitude: reminder.longitude,
+                              isEnabled: val,
+                            );
+                            await _box.putAt(index, updated);
+                            _refresh();
+
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(val ? 'Reminder ON' : 'Reminder OFF')),
+                            );
+                          },
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8.0, right: 8.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            TextButton.icon(
+                              icon: const Icon(Icons.edit, size: 18),
+                              label: const Text('Edit'),
+                              onPressed: () async {
+                                await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => ReminderFormScreen(
+                                      existingReminder: reminder,
+                                      index: index,
+                                    ),
+                                  ),
+                                );
+                                _refresh();
+                              },
+                            ),
+                            const SizedBox(width: 8),
+                            TextButton.icon(
+                              icon: const Icon(Icons.delete, size: 18),
+                              label: const Text('Delete'),
+                              onPressed: () {
+                                _box.deleteAt(index);
+                                _refresh();
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 );
               },
