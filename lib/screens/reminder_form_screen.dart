@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:latlong2/latlong.dart';
+import '../widgets/map_picker.dart';
 
 class ReminderFormScreen extends StatefulWidget {
   const ReminderFormScreen({Key? key}) : super(key: key);
@@ -12,6 +14,7 @@ class _ReminderFormScreenState extends State<ReminderFormScreen> {
   String? _title;
   String? _description;
   int _radius = 50;
+  LatLng? _selectedLocation;
 
   final List<int> radiusOptions = [10, 20, 50, 100];
 
@@ -43,13 +46,29 @@ class _ReminderFormScreenState extends State<ReminderFormScreen> {
                     .toList(),
                 onChanged: (value) => setState(() => _radius = value ?? 50),
               ),
+              const SizedBox(height: 24),
+              MapPicker(
+                onLocationSelected: (location) {
+                  setState(() => _selectedLocation = location);
+                },
+              ),
               const SizedBox(height: 32),
               ElevatedButton(
                 onPressed: () {
                   _formKey.currentState?.save();
+                  if (_selectedLocation == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Please select a location on the map')),
+                    );
+                    return;
+                  }
                   // We'll handle saving later
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Reminder saved (stub)')),
+                    SnackBar(
+                      content: Text(
+                        'Reminder saved (stub): $_title @ ${_selectedLocation!.latitude}, ${_selectedLocation!.longitude}',
+                      ),
+                    ),
                   );
                 },
                 child: const Text('Save Reminder'),
