@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:hive/hive.dart';
 import '../widgets/map_picker.dart';
+import '../models/geofence.dart';
 
 class ReminderFormScreen extends StatefulWidget {
   const ReminderFormScreen({Key? key}) : super(key: key);
@@ -54,7 +56,7 @@ class _ReminderFormScreenState extends State<ReminderFormScreen> {
               ),
               const SizedBox(height: 32),
               ElevatedButton(
-                onPressed: () {
+                onPressed: () async {
                   _formKey.currentState?.save();
                   if (_selectedLocation == null) {
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -62,14 +64,19 @@ class _ReminderFormScreenState extends State<ReminderFormScreen> {
                     );
                     return;
                   }
-                  // We'll handle saving later
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        'Reminder saved (stub): $_title @ ${_selectedLocation!.latitude}, ${_selectedLocation!.longitude}',
-                      ),
-                    ),
+
+                  final geofence = Geofence(
+                    title: _title ?? '',
+                    description: _description ?? '',
+                    radius: _radius,
+                    latitude: _selectedLocation!.latitude,
+                    longitude: _selectedLocation!.longitude,
                   );
+
+                  final box = Hive.box<Geofence>('geofences');
+                  await box.add(geofence);
+
+                  Navigator.pop(context); // ✅ Return to main screen
                 },
                 child: const Text('Save Reminder'),
               ),
